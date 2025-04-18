@@ -58,35 +58,6 @@ def run_cmd(cmd):
 def run_choco_command(command):
     subprocess.run(['powershell.exe', 'choco', command], check=True)
 
-def clean_windows():
-    print("\n🧹 Cleaning Windows to save space...")
-
-    # Empty Recycle Bin
-    run_cmd('PowerShell.exe -Command "Clear-RecycleBin -Force"')
-
-    # Clean Temp Folders
-    temp_dirs = [
-        os.environ.get("TEMP", r"C:\Windows\Temp"),
-        r"C:\Windows\Temp",
-        r"C:\Windows\Prefetch"
-    ]
-    for dir_path in temp_dirs:
-        if os.path.exists(dir_path):
-            print(f"Clearing {dir_path}")
-            try:
-                for root, dirs, files in os.walk(dir_path, topdown=False):
-                    for name in files:
-                        try:
-                            os.remove(os.path.join(root, name))
-                        except Exception:
-                            pass
-                    for name in dirs:
-                        try:
-                            shutil.rmtree(os.path.join(root, name), ignore_errors=True)
-                        except Exception:
-                            pass
-            except Exception as e:
-                print(f"Error cleaning {dir_path}: {e}")
 
 def clear_recycle_bin():
     try:
@@ -114,6 +85,12 @@ def install_packages():
     # Update choco
     run_choco_command("upgrade chocolatey -y")
 
+    # Install device drivers
+    run_choco_command("install nvidia-display-driver -y")
+    run_choco_command("install amd-ryzen-chipset-driver -y")
+    run_choco_command("install realtek-hd-audio-driver -y")
+    run_choco_command("install intel-chipset-device-softwar -y")
+
     # Install Applications
     run_choco_command("install docker-desktop -y")
     run_choco_command("install slack -y")
@@ -121,11 +98,15 @@ def install_packages():
     run_choco_command("install brave -y")
     run_choco_command("install wsl2 -y")
     run_choco_command("install vscode -y")
+    run_choco_command("install googlechrome -y")
+    run_choco_command("install xbox -y")
+    run_choco_command("install 7zip -y")
+    # run_choco_command("install steam -y")
+    
 
 def main():
     install_chocolatey()
     install_packages()
-    # clean_windows() # not working
     update_hosts_file()
     flush_dns_cache()
     clear_recycle_bin()
