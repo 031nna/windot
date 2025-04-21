@@ -108,7 +108,7 @@ def install_packages():
 
     # Update choco
     run_choco_command("upgrade chocolatey -y")
-+
+
     # Install device drivers
     run_choco_command("install nvidia-display-driver -y")
     run_choco_command("install amd-ryzen-chipset-driver -y")
