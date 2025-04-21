@@ -2,6 +2,10 @@ import os
 import subprocess
 import shutil
 
+## how to run on windows
+# cd "C:\Users\meren\Desktop\windot-main"
+# python setup.py
+
 
 # Path to the hosts file
 hosts_path = r"C:\Windows\System32\drivers\etc\hosts"
@@ -56,8 +60,17 @@ def run_cmd(cmd):
         print(e)
 
 def run_choco_command(command):
-    subprocess.run(['powershell.exe', 'choco', command], check=True)
-
+    choco_path = shutil.which("choco") or "C:\\ProgramData\\chocolatey\\bin\\choco.exe"
+    
+    if not os.path.exists(choco_path):
+        print("❌ Chocolatey not found. Skipping command:", command)
+        return
+    
+    try:
+        subprocess.run(['powershell.exe', choco_path] + command.split(), check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"⚠️ Chocolatey command failed: {command}")
+        print(e)
 
 def clear_recycle_bin():
     try:
@@ -71,25 +84,36 @@ def clear_recycle_bin():
 
 def install_chocolatey():
     print("\n🍫 Installing Chocolatey...")
-    choco_installed = shutil.which("choco") is not None
-    if not choco_installed:
-        run_cmd(r'''PowerShell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; \
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; \
-        iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"''')
+
+    choco_path = shutil.which("choco")
+    if not choco_path:
+        try:
+            run_cmd(r'''PowerShell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"''')
+            print("✅ Chocolatey installation initiated. Please wait a moment...")
+        except Exception as e:
+            print("❌ Chocolatey installation failed:", e)
     else:
         print("✅ Chocolatey is already installed.")
+
+def install_ubuntu_2404():
+    try:
+        subprocess.run(["wsl", "--install", "-d", "Ubuntu-24.04"], check=True)
+        print("✅ Ubuntu 24.04 is being installed.")
+    except subprocess.CalledProcessError as e:
+        print("❌ Failed to install Ubuntu 24.04:", e)
+
 
 def install_packages():
     print("\n📦 Installing Desktop Applications and WSL...")
 
     # Update choco
     run_choco_command("upgrade chocolatey -y")
-
++
     # Install device drivers
     run_choco_command("install nvidia-display-driver -y")
     run_choco_command("install amd-ryzen-chipset-driver -y")
     run_choco_command("install realtek-hd-audio-driver -y")
-    run_choco_command("install intel-chipset-device-softwar -y")
+    run_choco_command("install intel-chipset-device-software -y")
 
     # Install Applications
     run_choco_command("install docker-desktop -y")
@@ -101,13 +125,15 @@ def install_packages():
     run_choco_command("install googlechrome -y")
     run_choco_command("install xbox -y")
     run_choco_command("install 7zip -y")
-    # run_choco_command("install steam -y")
+    run_choco_command("install steam -y")
+    run_choco_command("install git-y")
     
 
 def main():
     install_chocolatey()
     install_packages()
     update_hosts_file()
+    install_ubuntu_2404()
     flush_dns_cache()
     clear_recycle_bin()
     print("\n🎉 Done! Your system is cleaner and has Packages installed.")
