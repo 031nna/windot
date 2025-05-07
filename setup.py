@@ -126,7 +126,8 @@ def install_packages():
     run_choco_command("install xbox -y")
     run_choco_command("install 7zip -y")
     run_choco_command("install steam -y")
-    run_choco_command("install git-y")
+    run_choco_command("install git -y")
+    run_choco_command("install lghub -y")
     
 
 def main():
